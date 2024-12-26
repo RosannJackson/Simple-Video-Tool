@@ -20,12 +20,15 @@ class SimpleVideoAnalysisTool {
     }
 
     public function enqueue_scripts() {
+        // Enqueue necessary styles
         wp_enqueue_style(
             'video-tool-style',
             plugins_url('css/video-tool.css', __FILE__),
             array(),
             '1.0'
         );
+
+        // Enqueue necessary scripts
         wp_enqueue_script(
             'video-tool-script',
             plugins_url('js/video-tool.js', __FILE__),
@@ -33,6 +36,8 @@ class SimpleVideoAnalysisTool {
             '1.0',
             true
         );
+
+        // Pass variables to JavaScript
         wp_localize_script(
             'video-tool-script',
             'videoToolAjax',
@@ -47,6 +52,7 @@ class SimpleVideoAnalysisTool {
         ob_start();
         ?>
         <div class="video-analysis-tool">
+            <!-- Upload Form -->
             <div class="upload-section">
                 <h3>Upload Video</h3>
                 <form id="video-upload-form" method="post" enctype="multipart/form-data">
@@ -54,6 +60,8 @@ class SimpleVideoAnalysisTool {
                     <button type="submit" class="upload-button">Upload Video</button>
                 </form>
             </div>
+
+            <!-- YouTube URL Form -->
             <div class="youtube-section">
                 <h3>Or Add YouTube URL</h3>
                 <form id="youtube-form">
@@ -61,7 +69,11 @@ class SimpleVideoAnalysisTool {
                     <button type="submit">Add Video</button>
                 </form>
             </div>
-            <div id="video-list"></div>
+
+            <!-- Video List -->
+            <div id="video-list">
+                <!-- Videos will be displayed here via JavaScript -->
+            </div>
         </div>
         <?php
         return ob_get_clean();
@@ -87,8 +99,10 @@ class SimpleVideoAnalysisTool {
         <div class="wrap">
             <h1>Video Tool Settings</h1>
             <form method="post" action="options.php">
-                <?php settings_fields('video-tool-settings'); ?>
-                <?php do_settings_sections('video-tool-settings'); ?>
+                <?php
+                settings_fields('video-tool-settings');
+                do_settings_sections('video-tool-settings');
+                ?>
                 <table class="form-table">
                     <tr>
                         <th>Maximum Upload Size</th>
@@ -106,16 +120,20 @@ class SimpleVideoAnalysisTool {
     }
 }
 
+// Initialize the plugin
 $simple_video_tool = new SimpleVideoAnalysisTool();
 
+// Handle AJAX upload
 add_action('wp_ajax_upload_video', 'handle_video_upload');
 function handle_video_upload() {
     check_ajax_referer('video-tool-nonce', 'nonce');
+    
     if (!current_user_can('upload_files')) {
         wp_send_json_error('Permission denied');
     }
 
     $upload = wp_handle_upload($_FILES['video'], array('test_form' => false));
+    
     if ($upload && !isset($upload['error'])) {
         wp_send_json_success($upload);
     } else {
